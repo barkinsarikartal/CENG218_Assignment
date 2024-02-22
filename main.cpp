@@ -23,7 +23,7 @@ public:
         }
     }
     void checkReservation(string userSurname){
-        if(Flight::searchForSurname(userSurname) == true) {
+        if(Flight::searchForSurname(userSurname)) {
             cout << "Your Flight Number is: " << this->flightNo << endl;
         }
         else{
@@ -50,7 +50,7 @@ public:
             return false;
         }
     }
-    int numberOfPassengers() {
+    [[nodiscard]] unsigned int numberOfPassengers() const {
         return passengerVector.size();
     }
     void printPassengers() {
