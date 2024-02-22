@@ -31,22 +31,19 @@ public:
         }
     }
     bool cancelReservation(string userSurname) {
-        if(Flight::searchForSurname(userSurname)) {
-            int temp = passengerCounter;
-            //it doesn't actually delete the searched passenger
-            passengerVector.pop_back();
-            //it deletes the last passenger added to the vector. fix it!!
-            if(temp > passengerVector.size()) {
-                cout << "Reservation Cancelled Successfully." << endl;
-                return true;
-            }
-            else {
-                cout << "Reservation Could Not Be Canceled." << endl;
-                return false;
-            }
+
+        auto deletedPerson = std::find_if(passengerVector.begin(), passengerVector.end(), [userSurname](const Passenger& passenger) {
+            return passenger.surname == userSurname;
+        });
+
+        if (deletedPerson != passengerVector.end()) {
+            passengerVector.erase(deletedPerson);
+            cout << "Reservation Cancelled Successfully." << endl;
+            passengerCounter--;
+            return true;
         }
-        else{
-            cout << "There is No Passenger With This Surname.";
+        else {
+            cout << "There is No Passengers With This Last Name." << endl;
             return false;
         }
     }
@@ -60,6 +57,7 @@ public:
             passenger.display();
             i++;
         }
+        cout << to_string(numberOfPassengers()) + " Passengers Aboard" << endl;
     }
     bool searchForSurname(string userSurname){
         auto result = std::find_if(passengerVector.begin(), passengerVector.end(),
@@ -88,12 +86,19 @@ int main() {
         mainMenu();
         cin >> choice;
         if(choice == 1){
-            cout << "Please Enter Passenger Information as \"FirstName LastName M/F\" \n";
+            cout << "Enter Passenger's First Name:" << endl;
             cin >> userName;
+            cout << "Enter Passenger's Last Name:" << endl;
             cin >> userSurname;
+            cout << "Enter Passenger's Last Name (M/F):" << endl;
             cin >> userGender;
             Passenger passenger = *new Passenger(userName, userSurname, userGender);
-            flight.reserveSeat(passenger);
+            if(flight.reserveSeat(passenger)){
+                cout << "Reservation Done Successfully." << endl;
+            }
+            else{
+                cout << "Reservation Could Not Be Done." << endl;
+            }
             userName = {}, userSurname = {}, userGender = {};
         }
         else if(choice == 2){
@@ -111,6 +116,7 @@ int main() {
         else if(choice == 4){
             cout << "Passenger List:\n";
             flight.printPassengers();
+
         }
         else if(choice == 5){
             cout << "Exiting Program.\n";
