@@ -27,8 +27,3 @@ void Passenger::getGender(){
 void Passenger::getfullName(){
     cout << this->fullName << endl;
 }
-/*
-void Passenger::display(){
-    cout << this->name << " " << this->surname << " " << this->gender << endl;
-}
-*/
