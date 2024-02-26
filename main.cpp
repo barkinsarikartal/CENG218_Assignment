@@ -8,7 +8,7 @@ using namespace std;
 
 class Flight{
 public:
-    string flightNo = "THY5835";
+    string flightNo, destination;
     int passengerCounter = 0, maxSeats = 25;
     vector<Passenger> passengerVector;
 public:
@@ -30,20 +30,31 @@ public:
             cout << "You Do Not Have a Reservation." << endl;
         }
     }
-    bool cancelReservation(string userSurname) {
+    bool cancelReservation(string userName, string userSurname) {
 
-        auto deletedPerson = std::find_if(passengerVector.begin(), passengerVector.end(), [userSurname](const Passenger& passenger) {
+        bool deleteCheck1 = false, deleteCheck2 = false;
+
+        auto deletedPersonSurname = std::find_if(passengerVector.begin(), passengerVector.end(), [userSurname](const Passenger& passenger) {
             return passenger.surname == userSurname;
         });
 
-        if (deletedPerson != passengerVector.end()) {
-            passengerVector.erase(deletedPerson);
-            cout << "Reservation Cancelled Successfully." << endl;
-            passengerCounter--;
-            return true;
+        if (deletedPersonSurname != passengerVector.end()) {
+            auto deletedPersonName = std::find_if(passengerVector.begin(), passengerVector.end(), [userName](const Passenger& passenger) {
+                return passenger.name == userName;
+            });
+            if(deletedPersonName != passengerVector.end() && deletedPersonName == deletedPersonSurname){
+                passengerVector.erase(deletedPersonName);
+                cout << "Reservation Cancelled Successfully." << endl;
+                passengerCounter--;
+                return true;
+            }
+            else{
+                cout << "Couldn't Cancel The Reservation." << endl;
+                return false;
+            }
         }
         else {
-            cout << "There is No Passengers With This Last Name." << endl;
+            cout << "Couldn't Cancel The Reservation." << endl;
             return false;
         }
     }
@@ -72,6 +83,21 @@ public:
     }
 };
 
+class FlightManager{
+public:
+    int flightCounter = 0;
+    vector<Flight> flightVector;
+public:
+    void addFlight(const Flight& flight){
+        flightVector.push_back(flight);
+        flightCounter++;
+    }
+    void removeFlight(){
+
+
+    }
+};
+
 void mainMenu();
 
 int main() {
@@ -90,7 +116,7 @@ int main() {
             cin >> userName;
             cout << "Enter Passenger's Last Name:" << endl;
             cin >> userSurname;
-            cout << "Enter Passenger's Last Name (M/F):" << endl;
+            cout << "Enter Passenger's Gender (M/F):" << endl;
             cin >> userGender;
             Passenger passenger = *new Passenger(userName, userSurname, userGender);
             if(flight.reserveSeat(passenger)){
@@ -102,10 +128,12 @@ int main() {
             userName = {}, userSurname = {}, userGender = {};
         }
         else if(choice == 2){
+            cout << "Enter the First Name of the Passenger Whose Reservation You Want to Cancel:\n";
+            cin >> userName;
             cout << "Enter the Last Name of the Passenger Whose Reservation You Want to Cancel:\n";
             cin >> userSurname;
-            flight.cancelReservation(userSurname);
-            userSurname = {};
+            flight.cancelReservation(userName, userSurname);
+            userName = {}, userSurname = {};
         }
         else if(choice == 3){
             cout << "Enter Your Last Name to Check Your Reservation.\n";
