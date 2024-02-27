@@ -9,18 +9,23 @@ using namespace std;
 class Flight{
 public:
     string flightNumber, destination;
-    int passengerCounter = 0, maxSeats = 40;
+    int maxSeats = 40, passengerCounter = 0;
     vector<Passenger> passengerVector;
 public:
-    Flight(string userFlightNumber, string userDestination)
-    : flightNumber(userFlightNumber), destination(userDestination) {}
+    Flight(string userFlightNumber, string userDestination, int userMaxSeats)
+    : flightNumber(userFlightNumber), destination(userDestination), maxSeats(userMaxSeats) {}
     Flight()= default;
 public:
     bool reserveSeat(Passenger passenger){
         if(this->passengerCounter < this->maxSeats){
+            unsigned long tempSeats = passengerVector.size();
             passengerVector.push_back(passenger);
-            passengerCounter++;
-            return true;
+            if(passengerVector.size() > tempSeats){
+                return true;
+            }
+            else{
+                return false;
+            }
         }
         else{
             return false;
@@ -96,7 +101,7 @@ public:
         }
     }
     void display() const{
-        cout << "Flight No: " << this->flightNumber << ", Going to: " << this->destination << ", Passengers Aboard: " << this->passengerCounter << endl;
+        cout << "Flight No: " << this->flightNumber << ", Going to: " << this->destination << ", Passengers Aboard: " << this->passengerCounter << ", Maximum Seat Number: " << this->maxSeats << endl;
     }
     bool isFlyingTo(const string& userDestination){
         if(userDestination == this->destination){
@@ -178,16 +183,18 @@ public:
 
 void mainPassengerMenu();
 void flightManagerMenu();
+void dealWithPassengers(const string& userFlightNumber, FlightManager flightManager);
 
 int main() {
 
     string userName, userSurname, userFlightNumber, userDestination;
     char userGender;
-    int passengerMenuChoice = 0, flightMenuChoice = 0;
+    int userMaxSeats, passengerMenuChoice = 0, flightMenuChoice = 0;
+    bool managerFlag = true;
 
     FlightManager flightManager = *new FlightManager;
 
-    do{
+    while(managerFlag){
         flightManagerMenu();
         cin >> flightMenuChoice;
         if(flightMenuChoice == 1){
@@ -195,7 +202,10 @@ int main() {
             cin >> userFlightNumber;
             cout << "Enter Destination:" << endl;
             cin >> userDestination;
-            Flight flight = *new Flight(userFlightNumber, userDestination);
+            cout << "Enter Maximum Seat Number:" << endl;
+            cin >> userMaxSeats;
+
+            Flight flight = *new Flight(userFlightNumber, userDestination, userMaxSeats);
             if(flightManager.addFlight(flight)){
                 cout << "Flight Added to The System Successfully." << endl;
             }
@@ -220,85 +230,19 @@ int main() {
         }
 
         else if(flightMenuChoice == 4){ //fix this and you are good to go.
-            mainPassengerMenu();
-            cin >> passengerMenuChoice;
-            while(true){
-                if(passengerMenuChoice == 1){
-                    cout << "Enter Passenger's First Name:" << endl;
-                    cin >> userName;
-                    cout << "Enter Passenger's Last Name:" << endl;
-                    cin >> userSurname;
-                    cout << "Enter Passenger's Gender (M/F):" << endl;
-                    cin >> userGender;
-                    cout << "Enter the Flight Number You Want to Reserve a Ticket From:" << endl;
-                    cin >> userFlightNumber;
-
-                    Passenger passenger = *new Passenger(userName, userSurname, userGender);
-
-                    if(flightManager.isThereAFlight(userFlightNumber)){
-                        flightManager.getFlightByNumber(userFlightNumber).reserveSeat(passenger);
-                        cout << "Reservation Done Successfully." << endl;
-                    }
-                    else{
-                        cout << "Reservation Could Not Be Done." << endl;
-                    }
-                    userName = {}, userSurname = {}, userGender = {}, userFlightNumber = {};
-                }
-                else if(passengerMenuChoice == 2){
-                    cout << "Enter the First Name of the Passenger Whose Reservation You Want to Cancel:\n";
-                    cin >> userName;
-                    cout << "Enter the Last Name of the Passenger Whose Reservation You Want to Cancel:\n";
-                    cin >> userSurname;
-                    cout << "Enter the Flight Number You Want to Cancel the Ticket From:" << endl;
-                    cin >> userFlightNumber;
-
-                    if(flightManager.isThereAFlight(userFlightNumber)){
-                        flightManager.getFlightByNumber(userFlightNumber).cancelReservation(userName, userSurname);
-                    }
-
-                    userName = {}, userSurname = {}, userFlightNumber = {};
-                    passengerMenuChoice = {};
-                }
-                else if(passengerMenuChoice == 3){
-                    cout << "Enter Your First Name:\n";
-                    cin >> userName;
-                    cout << "Enter Your Last Name:\n";
-                    cin >> userSurname;
-                    cout << "Enter Your Flight Number:" << endl;
-                    cin >> userFlightNumber;
-
-                    flightManager.getFlightByNumber(userFlightNumber).checkReservation(userName, userSurname);
-                    userName = {}, userSurname = {}, userFlightNumber = {};
-                    passengerMenuChoice = {};
-                }
-                else if(passengerMenuChoice == 4){
-                    cout << "Enter the Number of Flight You Want to Display Passengers of:" << endl;
-                    cin >> userFlightNumber;
-
-                    cout << "Passenger List:\n";
-                    flightManager.getFlightByNumber(userFlightNumber).printPassengers();
-                    passengerMenuChoice = {};
-                }
-                else if(passengerMenuChoice == 5){
-                    passengerMenuChoice = {};
-                    break;
-                }
-
-                else{
-                    cout << "Invalid choice.\n"; //fix the char bug!
-                }
-
-            }
+            cout << "Enter The Flight Number You Want to Manage.\n";
+            cin >> userFlightNumber;
+            dealWithPassengers(userFlightNumber, flightManager);
+            userFlightNumber = {};
         }
-
         else if(flightMenuChoice == 5){
             cout << "Exiting Program.\n";
+            managerFlag = false;
         }
         else{
             cout << "Invalid choice.\n"; //fix the char bug!
         }
     }
-    while(flightMenuChoice != 5);
 
     return 0;
 }
@@ -319,6 +263,78 @@ void mainPassengerMenu(){
     cout << "3. Check Reservation" << endl;
     cout << "4. Display Passengers" << endl;
     cout << "5. Back to Flight Management Menu" << endl;
+}
+
+void dealWithPassengers(const string& userFlightNumber, FlightManager flightManager){
+
+    if(flightManager.isThereAFlight(userFlightNumber)){
+        string userName, userSurname, userDestination;
+        char userGender;
+        int passengerMenuChoice = 0;
+        bool passengerFlag = true;
+
+        while(passengerFlag){
+            mainPassengerMenu();
+            cin >> passengerMenuChoice;
+            if(passengerMenuChoice == 1) {
+                cout << "Enter Passenger's First Name:" << endl;
+                cin >> userName;
+                cout << "Enter Passenger's Last Name:" << endl;
+                cin >> userSurname;
+                cout << "Enter Passenger's Gender (M/F):" << endl;
+                cin >> userGender;
+
+                Passenger passenger = *new Passenger(userName, userSurname, userGender);
+
+                if(flightManager.getFlightByNumber(userFlightNumber).reserveSeat(passenger)){
+                    cout << "Reservation Done Successfully." << endl;
+                }
+                else{
+                    cout << "Reservation Could Not Be Done." << endl;
+                }
+                userName = {}, userSurname = {}, userGender = {};
+            }
+            else if(passengerMenuChoice == 2) {
+                cout << "Enter the First Name of the Passenger Whose Reservation You Want to Cancel:\n";
+                cin >> userName;
+                cout << "Enter the Last Name of the Passenger Whose Reservation You Want to Cancel:\n";
+                cin >> userSurname;
+
+                flightManager.getFlightByNumber(userFlightNumber).cancelReservation(userName, userSurname);
+
+                userName = {}, userSurname = {};
+            }
+            else if(passengerMenuChoice == 3) {
+                cout << "Enter Your First Name:\n";
+                cin >> userName;
+                cout << "Enter Your Last Name:\n";
+                cin >> userSurname;
+
+                flightManager.getFlightByNumber(userFlightNumber).checkReservation(userName, userSurname);
+                userName = {}, userSurname = {};
+            }
+            else if(passengerMenuChoice == 4) {
+                int i=1;
+                cout << "Passenger List:\n";
+                for (auto& passenger : flightManager.getFlightByNumber(userFlightNumber).passengerVector) {
+                    cout << i << ". ";
+                    passenger.display();
+                    i++;
+                }
+                flightManager.getFlightByNumber(userFlightNumber).printPassengers();
+            }
+            else if(passengerMenuChoice == 5) {
+                passengerFlag = false;
+            }
+            else {
+                cout << "Invalid choice.\n"; //fix the char bug!
+            }
+            passengerMenuChoice = {};
+        }
+    }
+    else{
+        cout << "There is No Such Flight.\n";
+    }
 }
 
 /* use later:
